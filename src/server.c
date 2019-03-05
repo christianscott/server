@@ -19,17 +19,17 @@ void *handle_client(int *client_fd)
   char buf[BUFFER_SIZE];
   while (1)
   {
-    int read = recv(*client_fd, buf, BUFFER_SIZE, 0);
-    if (!read)
+    size_t msg_length = recv(*client_fd, buf, BUFFER_SIZE, 0);
+    if (!msg_length)
     {
       break;
     }
-    if (read < 0)
+    if (msg_length < 0)
     {
       on_error("Client read failed\n");
     }
 
-    if (send(*client_fd, buf, read, 0) < 0)
+    if (send(*client_fd, buf, msg_length, 0) < 0)
     {
       on_error("Client write failed\n");
     }
@@ -48,8 +48,6 @@ int main(int argc, char *argv[])
   {
     on_error("Bad port: %s\n", argv[1]);
   }
-
-  char buf[BUFFER_SIZE];
 
   int server_fd = socket(AF_INET, SOCK_STREAM, PROTOCOL_IP);
   if (server_fd < 0)
@@ -81,10 +79,12 @@ int main(int argc, char *argv[])
   {
     struct sockaddr_in client;
     socklen_t client_len = sizeof(client);
-    int client_fd = accept(server_fd, (struct sockaddr *)&client, &client_len);
 
+    int client_fd = accept(server_fd, (struct sockaddr *)&client, &client_len);
     if (client_fd < 0)
+    {
       on_error("Could not establish new connection\n");
+    }
 
     pthread_t handle_client_thread;
     if (pthread_create(&handle_client_thread, NULL, handle_client, &client_fd))
