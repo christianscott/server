@@ -1,3 +1,4 @@
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -34,6 +35,8 @@ void *handle_client(int *client_fd)
       on_error("Client write failed\n");
     }
   }
+
+  return 0;
 }
 
 int main(int argc, char *argv[])
@@ -87,7 +90,7 @@ int main(int argc, char *argv[])
     }
 
     pthread_t handle_client_thread;
-    if (pthread_create(&handle_client_thread, NULL, handle_client, &client_fd))
+    if (pthread_create(&handle_client_thread, NULL, (void *)handle_client, &client_fd))
     {
       on_error("Error creating thread\n");
     }
